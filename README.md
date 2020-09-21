@@ -1,0 +1,1 @@
+Dbus interface and tools to communicate with the LEDs and display exposed by the [hid-fanatecff](https://github.com/gotzl/hid-fanatecff) driver.
