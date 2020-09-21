@@ -4,7 +4,7 @@ from pydbus.generic import signal
 import glob
   
 def get_sysfs_base(PID):
-  return glob.glob("/sys/module/hid_ftec/drivers/hid:ftec_csl_elite/0003:0EB7:%s.*"%(PID))[0]
+  return glob.glob("/sys/module/hid_fanatec/drivers/hid:ftec_csl_elite/0003:0EB7:%s.*"%(PID))[0]
 
 class CSLElite(object):
   """
