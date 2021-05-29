@@ -1,47 +1,55 @@
-import socket
-import threading
 import time
+import socket
+import select
+import threading
+import fanatec_led_server
+
+from f1_2020_telemetry.f1_2020_telemetry import packets
 
 
-class F12020Client(threading.Thread):
+class F12020Client(fanatec_led_server.Client):
     UDP_IP = "127.0.0.1"
     UDP_PORT = 20777
 
-    def __init__(self, ev): 
-        threading.Thread.__init__(self)
-        self.sock = sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    def __init__(self, ev, dbus=True, device=None, display='gear'): 
+        fanatec_led_server.Client.__init__(self, ev, dbus, device, display)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind((F12020Client.UDP_IP, F12020Client.UDP_PORT))
         self.sock.setblocking(0)
-        self.ev = ev
+        self.timeout_cnt = 0
 
-    def run(self):
-        import fanatec_led_server
+    def prerun(self):
         while not self.ev.isSet():
             try:
-                data, addr = self.sock.recvfrom(2048)
-                pkt_id = data[5]
-                # only use telemetry packets
-                if pkt_id != 6: continue
-                car_idx = data[22]
+                self.sock.recv(2048)
+                break
+            except Exception as e:
+                time.sleep(1)
 
-                # start car delemetry data byte 24
-                # size of car delemetry data 58
-                car_telem_start = 24 + car_idx*58
-                speed = int.from_bytes(data[car_telem_start:car_telem_start+2], byteorder="little")
-                gear = int(data[car_telem_start+15])
-                rpm = int.from_bytes(data[car_telem_start+16:car_telem_start+18], byteorder="little")
-                suggestedGear = int(data[-1])
+    def tick(self):
+        ready = select.select([self.sock], [], [], .2)
+        if not ready[0]:
+            print('Timeout waiting for F1 2020 data,', self.timeout_cnt)
+            self.timeout_cnt += 1
+            if self.timeout_cnt > 10:
+                raise Exception('Too many timeouts received!')
+            return False
 
-                fanatec_led_server.set_leds([False if (rpm-5000)<i*1000 else True for i in range(9)])
-                fanatec_led_server.set_display(speed)
-                # print(speed, rpm, gear)
-            except:
-                time.sleep(.5)
+        self.timeout_cnt = 0
+        data = self.sock.recv(2048)
+        packet = packets.unpack_udp_packet(data)
+        if packet.header.packetId == packets.PacketID.CAR_TELEMETRY:
+            telem = packet.carTelemetryData[packet.header.playerCarIndex]
+            self._speedKmh = telem.speed
+            self._gear = telem.gear
+            self._revLightsPercent = telem.revLightsPercent/100
+            self._suggestedGear = packet.suggestedGear
+        return True
 
 if __name__ == "__main__":
     try:
         ev = threading.Event()
-        f1 = F12020Client(ev)
+        f1 = F12020Client(ev, device='0005', dbus=False)
         f1.start()
         f1.join()
 

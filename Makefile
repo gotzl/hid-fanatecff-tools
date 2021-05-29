@@ -1,11 +1,18 @@
 install:
-	cp dbus/org.fanatec.CSLElite.conf /etc/dbus-1/system.d/
-	cp dbus/org.fanatec.CSLElite.service /usr/share/dbus-1/system-services/
-	cp dbus/fanatec-input.py /usr/bin/
+	@echo -e "\n::\033[34m Installing Fanatec tools\033[0m"
+	@echo "====================================================="
+	@cp -v  dbus/org.fanatec.conf /etc/dbus-1/system.d/
+	@cp -v  dbus/org.fanatec.service /usr/share/dbus-1/system-services/
+	@cp -v  dbus/fanatec-input.py /usr/bin/
+	@cp -v  dbus/fanatec-input.systemd.service /lib/systemd/system/fanatec-input.service
+	@ln -sf fanatec-input.service /lib/systemd/system/dbus-org.fanatec.service
 	# cp org.fanatec.policy /usr/share/polkit-1/actions/
 
 uninstall:
-	rm /etc/dbus-1/system.d/org.fanatec.CSLElite.conf
-	rm /usr/share/dbus-1/system-services/org.fanatec.CSLElite.service
-	rm /usr/bin/fanatec-input.py
+	@echo -e "\n::\033[34m Uninstalling Fanatec tools\033[0m"
+	@echo "====================================================="
+	@rm -fv  /etc/dbus-1/system.d/org.fanatec.conf
+	@rm -fv  /usr/share/dbus-1/system-services/org.fanatec.service
+	@rm -fv  /usr/bin/fanatec-input.py
+	@rm -fr  /lib/systemd/system/fanatec-input.service /lib/systemd/system/dbus-org.fanatec.service
 	# rm /usr/share/polkit-1/actions/org.fanatec.policy

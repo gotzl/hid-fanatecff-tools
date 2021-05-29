@@ -1,14 +1,36 @@
 #!/usr/bin/python
+import os
+import glob
+import logging
 
 from pydbus.generic import signal
-import glob
-  
+from pydbus import SystemBus
+from gi.repository import GLib
+
 FANATEC_VENDOR_ID='0EB7'
 CSL_ELITE_PEDALS_DEVICE_ID='6204'
 CSL_ELITE_PS4_WHEELBASE_DEVICE_ID='0005'
 
 def get_sysfs_base(PID):
-  return glob.glob("/sys/module/hid_fanatec/drivers/hid:ftec_csl_elite/0003:%s:%s.*"%(FANATEC_VENDOR_ID, PID))[0]
+  sysfs_pattern = "/sys/module/hid_fanatec/drivers/hid:ftec_csl_elite/0003:%s:%s.*"%(FANATEC_VENDOR_ID, PID)
+  sysfs = glob.glob(sysfs_pattern)
+  if len(sysfs) == 0: raise Exception("Device with PID=%s not found (%s)"%(PID,sysfs_pattern))
+  return sysfs[0]
+
+
+class FanatecWheelBase(object):
+  """
+    <node>
+      <interface name='org.fanatec'>
+        <property name="RPM" type="ab" access="write">
+          <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
+        </property>     
+      </interface>    
+    </node>
+  """      
+  def __init__(self):
+    pass
+
 
 class CSLElite(object):
   """
@@ -50,7 +72,8 @@ class CSLElite(object):
   def __init__(self):
     pass
 
-  def get_sysfs(self, name):
+  @staticmethod
+  def get_sysfs(self, name, device=CSL_ELITE_PS4_WHEELBASE_DEVICE_ID):
     return "%s/%s"%(get_sysfs_base(CSL_ELITE_PS4_WHEELBASE_DEVICE_ID), name)
 
   def tuning_get(self, name):
@@ -147,6 +170,9 @@ class CSLElitePedals(object):
         <property name="Load" type="i" access="readwrite">
           <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
         </property>
+        <property name="Rumble" type="i" access="write">
+          <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
+        </property>        
       </interface>
     </node>
   """
@@ -154,8 +180,9 @@ class CSLElitePedals(object):
   def __init__(self):
     pass
   
-  def get_sysfs(self, name):
-    return "%s/%s"%(get_sysfs_base(CSL_ELITE_PEDALS_DEVICE_ID), name)
+  @staticmethod
+  def get_sysfs(self, name, device=CSL_ELITE_PEDALS_DEVICE_ID):
+    return "%s/%s"%(get_sysfs_base(device), name)
 
   @property
   def Load(self):
@@ -164,6 +191,14 @@ class CSLElitePedals(object):
   @Load.setter
   def Load(self, value):
     return int(open(self.get_sysfs('load'),'w').write(str(value)))
+
+  @property
+  def Rumble(self):
+    pass
+
+  @Rumble.setter
+  def Rumble(self, value):
+    return int(open(self.get_sysfs('rumble'),'w').write(str(value)))    
 
   PropertiesChanged = signal()
 
@@ -174,10 +209,7 @@ class CSLEliteWheel(object):
       <interface name='org.fanatec.CSLElite.Wheel'>
         <property name="Display" type="i" access="write">
           <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
-        </property>
-        <property name="RPM" type="ab" access="write">
-          <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
-        </property>        
+        </property>   
       </interface>
     </node>
   """
@@ -185,12 +217,18 @@ class CSLEliteWheel(object):
   def __init__(self):
     pass
 
-  def get_sysfs(self, name):
-    return "%s/%s"%(get_sysfs_base(CSL_ELITE_PS4_WHEELBASE_DEVICE_ID), name)
+  @staticmethod
+  def get_sysfs(name, device=CSL_ELITE_PS4_WHEELBASE_DEVICE_ID):
+    return "%s/%s"%(get_sysfs_base(device), name)
   
-  def get_sysfs_rpm(self):
-    sysfs_base = get_sysfs_base(CSL_ELITE_PS4_WHEELBASE_DEVICE_ID)
-    return "%s/leds/0003:0EB7:%s.%s::RPM"%(sysfs_base,CSL_ELITE_PS4_WHEELBASE_DEVICE_ID,sysfs_base.split(".")[-1])
+  @staticmethod
+  def get_sysfs_rpm(device=CSL_ELITE_PS4_WHEELBASE_DEVICE_ID):
+    sysfs_base = get_sysfs_base(device)
+    return "%s/leds/0003:0EB7:%s.%s::RPM"%(sysfs_base,device,sysfs_base.split(".")[-1])
+
+  @staticmethod
+  def set_sysfs_rpm(values, device=CSL_ELITE_PS4_WHEELBASE_DEVICE_ID):
+    return list(map(lambda i: open('%s%i/brightness'%(CSLEliteWheel.get_sysfs_rpm(device), i[0] + 1),'w').write('1' if i[1] else '0'), enumerate(values)))
   
   @property
   def Display(self):
@@ -206,15 +244,11 @@ class CSLEliteWheel(object):
 
   @RPM.setter
   def RPM(self, values):
-    return list(map(lambda i: open('%s%i/brightness'%(self.get_sysfs_rpm(), i[0] + 1),'w').write('1' if i[1] else '0'), enumerate(values)))
+    return set_sysfs_rpm(values)
 
   PropertiesChanged = signal()
 
-
-if __name__ == "__main__":
-  from pydbus import SystemBus
-  from gi.repository import GLib
-
+def run():
   bus = SystemBus()
   r = bus.publish('org.fanatec.CSLElite', CSLElite(),
     ('Pedals', CSLElitePedals()),
@@ -228,3 +262,6 @@ if __name__ == "__main__":
       raise e        
   finally:
       r.unpublish()
+
+if __name__ == "__main__":
+  run()
