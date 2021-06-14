@@ -39,11 +39,11 @@ class AccClient(fanatec_led_server.Client):
 
     @property
     def tcInAction(self):
-        return self.physics.tcInAction
+        return self.physics.tc > 0
 
     @property
     def absInAction(self):
-        return self.physics.absInAction
+        return self.physics.abs > 0
         
     @property
     def speedKmh(self):
