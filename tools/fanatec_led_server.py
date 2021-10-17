@@ -107,12 +107,18 @@ class Client(threading.Thread):
                     pass
                 finally:
                     break
-        
+
         if not self.ev.isSet():
             print(self, 'connected')
 
         rpms_maxed = 0
         while not self.ev.isSet():
+            # check that the device is still available
+            try:
+                fanatec_input.get_sysfs_base(self.device)
+            except Exception as e:
+                break
+
             if not self.tick():
                 break
 
