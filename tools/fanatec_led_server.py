@@ -149,7 +149,6 @@ class Client(threading.Thread):
             if rpms_maxed % 2 == 1:
                 leds = [False] * 9
             else:
-                # print(self.revLightsPercent)
                 leds = [i / LEDS < self.revLightsPercent for i in range(LEDS)]
 
             if self.dbus:
@@ -192,27 +191,44 @@ if __name__ == "__main__":
     from rf2 import RF2Client
 
     import argparse
-    parser = argparse.ArgumentParser(description='Advanced functions for fanatec wheels with ACC')
-    parser.add_argument('--dbus', action='store_true', help='Use dbus for communicating commands to the wheel.')
-    parser.add_argument('--device', type=str, help='PID of the wheel (ClubSportv2 \'0001\', ClubSportv2.5 \'0004\', ...)', default='0005')
-    parser.add_argument('--display', type=str, help='property that is shown on display (gear, speedKmh)', default='gear')
+
+    parser = argparse.ArgumentParser(
+        description="Advanced functions for fanatec wheels with ACC"
+    )
+    parser.add_argument(
+        "--dbus",
+        action="store_true",
+        help="Use dbus for communicating commands to the wheel.",
+    )
+    parser.add_argument(
+        "--device",
+        type=str,
+        help="PID of the wheel (ClubSportv2 '0001', ClubSportv2.5 '0004', ...)",
+        default="0005",
+    )
+    parser.add_argument(
+        "--display",
+        type=str,
+        help="property that is shown on display (gear, speedKmh)",
+        default="gear",
+    )
     args = parser.parse_args()
 
     if args.dbus:
         bus = SystemBus()
-        wheel = bus.get('org.fanatec.CSLElite', '/org/fanatec/CSLElite/Wheel')
-        pedals = bus.get('org.fanatec.CSLElite', '/org/fanatec/CSLElite/Pedals')
+        wheel = bus.get("org.fanatec.CSLElite", "/org/fanatec/CSLElite/Wheel")
+        pedals = bus.get("org.fanatec.CSLElite", "/org/fanatec/CSLElite/Pedals")
 
     try:
         ev = threading.Event()
-        
+
         threads = []
         for typ in [F12020Client, AcClient, AccClient, RF2Client]:
             threads.append(typ(ev, args.dbus, args.device, args.display))
 
-        for thread in threads:    
+        for thread in threads:
             thread.start()
-            
+
         # run as long as the client threads are running, or CTRL+C
         print("Running ...")
 
@@ -220,12 +236,13 @@ if __name__ == "__main__":
             died = []
             for thread in threads:
                 if not thread.is_alive():
-                    print('Thread \'%s\' stopped.'%thread)
+                    print("Thread '%s' stopped." % thread)
                     died.append(thread)
             threads = [t for t in threads if t not in died]
-            if len(threads) == 0: break
+            if len(threads) == 0:
+                break
             time.sleep(1)
-            
+
     except (KeyboardInterrupt, SystemExit):
         print("Exiting")
     except Exception as e:
