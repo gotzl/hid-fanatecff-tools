@@ -185,7 +185,10 @@ class AMS2Client(fanatec_led_server.Client):
 if __name__ == "__main__":
     try:
         ev = threading.Event()
-        ams2 = AMS2Client(ev, device="0020", dbus=False)
+        ams2 = AMS2Client(
+            ev, device=CSL_DD_P1_V2_WHEEL_ID, dbus=False, wheel=CSLP1V2Wheel
+        )
+
         ams2.start()
         ams2.join()
 
