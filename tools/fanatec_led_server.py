@@ -251,4 +251,3 @@ if __name__ == "__main__":
         ev.set()
         if args.dbus:
             clear()
-        
