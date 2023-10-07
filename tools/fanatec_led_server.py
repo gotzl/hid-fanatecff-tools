@@ -4,31 +4,45 @@ import os
 import time
 import threading
 
+sys.path.append("../dbus")
+import fanatec_input
+
 LEDS = 9
+
 
 def set_leds(values):
     global wheel
     wheel.RPM = values
 
+
 def set_display(value):
     global wheel
     wheel.Display = value
 
+
 def set_pedals_rumble(abs, tc):
     global pedals
-    pedals.rumble = '%i'%( (0xff if tc else 0) << 16 | (0xff if abs else 0) << 8 )
+    pedals.rumble = "%i" % ((0xFF if tc else 0) << 16 | (0xFF if abs else 0) << 8)
+
 
 # clear leds and display
 def clear():
-    set_leds([False]*9)
+    set_leds([False] * 9)
     set_display(-1)
 
 
 class Client(threading.Thread):
-    def __init__(self, ev, dbus=True, device=None, display='gear'): 
+    def __init__(
+        self,
+        ev,
+        dbus=True,
+        device=None,
+        display="gear",
+        wheel=fanatec_input.CSLEliteWheel,
+    ):
         threading.Thread.__init__(self)
         if not dbus and device is None:
-            raise Exception('If dbus is not used, a device must be specified!')
+            raise Exception("If dbus is not used, a device must be specified!")
         self.ev = ev
         self.dbus = dbus
         self.device = device
@@ -41,6 +55,9 @@ class Client(threading.Thread):
         self._gear = 0
         self._suggestedGear = 0
 
+        # hold wheel data
+        self.wheel = wheel
+
     def prerun(self):
         pass
 
@@ -48,14 +65,13 @@ class Client(threading.Thread):
         pass
 
     def tick(self):
-        time.sleep(1/self.rate)
+        time.sleep(1 / self.rate)
         return True
 
     @staticmethod
-    def rpms_to_revlights(rpms, maxrpm, offset=-1):
-        if offset < 0: offset = maxrpm-2000
-        return (rpms - offset) / ((maxrpm*0.95) - offset)
-        
+    def rpms_to_revlights(rpms, maxrpm):
+        return max(100 * rpms / maxrpm, 0)
+
     @property
     def revLightsPercent(self):
         return self._revLightsPercent
@@ -81,35 +97,38 @@ class Client(threading.Thread):
         return self._suggestedGear
 
     def run(self):
-        print(self, 'waiting for game connection')
+        print(self, "waiting for game connection")
 
         self.prerun()
 
         if not self.dbus:
-            sys.path.append('../dbus')
-            import fanatec_input
+            # sys.path.append("../dbus")
+            # import fanatec_input
+
             while not self.ev.isSet():
-                try:                    
+                try:
                     fanatec_input.get_sysfs_base(self.device)
                 except Exception as e:
                     print(e)
                     time.sleep(1)
                     continue
 
-                print('Found sysfs for device', self.device)
+                print("Found sysfs for device", self.device)
 
                 try:
-                    display = fanatec_input.CSLEliteWheel.get_sysfs('display', self.device)
-                    pedals = fanatec_input.CSLEliteWheel.get_sysfs('rumble', self.device)
-                    if not os.path.isfile(display): display = None
-                    if not os.path.isfile(pedals): pedals = None
+                    display = self.wheel.get_sysfs("display", self.device)
+                    pedals = self.wheel.get_sysfs("rumble", self.device)
+                    if not os.path.isfile(display):
+                        display = None
+                    if not os.path.isfile(pedals):
+                        pedals = None
                 except:
                     pass
                 finally:
                     break
 
         if not self.ev.isSet():
-            print(self, 'connected')
+            print(self, "connected")
 
         rpms_maxed = 0
         while not self.ev.isSet():
@@ -122,38 +141,48 @@ class Client(threading.Thread):
             if not self.tick():
                 break
 
-            if self.revLightsPercent > 0.95:
+            if self._revLightsPercent > 0.95:
                 rpms_maxed += 1
             else:
                 rpms_maxed = 0
 
             if rpms_maxed % 2 == 1:
-                leds = [False]*9
+                leds = [False] * 9
             else:
-                leds = [i/LEDS < self.revLightsPercent for i in range(LEDS)]
+                # print(self.revLightsPercent)
+                leds = [i / LEDS < self.revLightsPercent for i in range(LEDS)]
 
             if self.dbus:
                 set_leds(leds)
-                set_display(eval('self.%s'%self.display))
+                set_display(eval("self.%s" % self.display))
                 set_pedals_rumble(self.absInAction, self.tcInAction)
             else:
-                rumble = '%i'%( (0xff if self.tcInAction else 0) << 16 | (0xff if self.absInAction else 0) << 8 )
+                rumble = "%i" % (
+                    (0xFF if self.tcInAction else 0) << 16
+                    | (0xFF if self.absInAction else 0) << 8
+                )
 
                 if display is not None:
                     display_val = str(self.speedKmh)
-                    if self.display == 'gear':
+                    if self.display == "gear":
                         gear = {-1: "R", 0: "N"}
-                        display_val = gear[self.gear] if self.gear in gear else str(self.gear)
-                    open(display, 'w').write(display_val)
+                        display_val = (
+                            gear[self.gear] if self.gear in gear else str(self.gear)
+                        )
 
-                if pedals is not None: open(pedals, 'w').write(str(rumble))
-                fanatec_input.CSLEliteWheel.set_sysfs_rpm(leds, self.device)
+                        # print(display_val)
+                    open(display, "w").write(display_val)
+
+                if pedals is not None:
+                    open(pedals, "w").write(str(rumble))
+                self.wheel.get_sysfs_rpm(self.device)
+                self.wheel.set_sysfs_rpm(self._revLightsPercent, self.device)
 
         self.postrun()
-        print(self, 'finished.')
+        print(self, "finished.")
 
         if not self.ev.isSet():
-             self.run()
+            self.run()
 
 
 if __name__ == "__main__":
