@@ -4,7 +4,6 @@ import select
 import threading
 import fanatec_led_server
 import scapy
-from termcolor import colored
 
 
 from scapy.all import sniff, UDP
@@ -70,7 +69,7 @@ class AMS2DataParser:
             gear_data = data[45]
             gear = gear_data & 0xF
         except IndexError:
-            print(colored("Error unpacking gear: IndexError", "red"))
+            print("Error unpacking gear: IndexError")
             gear = 0
         return gear
 
@@ -84,10 +83,10 @@ class AMS2DataParser:
             # speed in m/s, so we convert to km/h
             speed = int(3.6 * unpacked[0])
         except IndexError:
-            print(colored("Error unpacking speed: IndexError", "red"))
+            print("Error unpacking speed: IndexError")
             speed = 0
         except struct.error:
-            print(colored("Error unpacking speed: struct.error", "red"))
+            print("Error unpacking speed: struct.error")
             speed = 0
         return speed
 
@@ -101,7 +100,7 @@ class AMS2DataParser:
             rpm_back = data[41]
             rpm = (rpm_back << 8) + rpm_front
         except IndexError:
-            print(colored("Error unpacking rpm: IndexError", "red"))
+            print("Error unpacking rpm: IndexError")
             rpm = 0
         return rpm
 
@@ -112,7 +111,7 @@ class AMS2DataParser:
             max_rpm_back = data[43]
             max_rpm = (max_rpm_back << 8) + max_rpm_front
         except IndexError:
-            print(colored("Error unpacking max rpm: IndexError", "red"))
+            print("Error unpacking max rpm: IndexError")
             max_rpm = 1
         return max_rpm
 
