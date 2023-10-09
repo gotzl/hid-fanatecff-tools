@@ -5,8 +5,16 @@ import threading
 import fanatec_led_server
 import time
 import json
+import sys
 
-# car_data = {"ks_ferrari_f2004": 19500, "ks_mercedes_190_evo2": 9750}
+sys.path.append("../dbus")
+from fanatec_input import (
+    CSL_ELITE_PS4_WHEELBASE_DEVICE_ID,
+    CSL_DD_P1_V2_WHEEL_ID,
+    CSLElite,
+    CSLEliteWheel,
+    CSLP1V2Wheel,
+)
 
 car_data = json.load(open("car_data.json"))
 
@@ -20,8 +28,8 @@ class AcClient(fanatec_led_server.Client):
     SUBSCRIBE_SPOT = 2
     DISMISS = 3
 
-    def __init__(self, ev, dbus=True, device=None, display="gear"):
-        fanatec_led_server.Client.__init__(self, ev, dbus, device, display)
+    def __init__(self, ev, dbus=True, device=None, display="gear", wheel=CSLEliteWheel):
+        fanatec_led_server.Client.__init__(self, ev, dbus, device, display, wheel)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setblocking(0)
         self.timeout_cnt = 0
@@ -122,7 +130,7 @@ class AcClient(fanatec_led_server.Client):
 if __name__ == "__main__":
     try:
         ev = threading.Event()
-        ac = AcClient(ev, device="0020", dbus=False)
+        ac = AcClient(ev, device="0020", dbus=False, wheel=CSLP1V2Wheel)
         ac.start()  # start the thread...
         ac.join()  # run until the thread terminates
 
