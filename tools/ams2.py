@@ -68,6 +68,7 @@ class AMS2DataParser:
         try:
             gear_data = data[45]
             gear = gear_data & 0xF
+
         except IndexError:
             print("Error unpacking gear: IndexError")
             gear = 0
@@ -185,7 +186,10 @@ if __name__ == "__main__":
     try:
         ev = threading.Event()
         ams2 = AMS2Client(
-            ev, device=CSL_DD_P1_V2_WHEEL_ID, dbus=False, wheel=CSLP1V2Wheel
+            ev,
+            device=CSL_DD_P1_V2_WHEEL_ID,
+            dbus=False,
+            wheel=CSLP1V2Wheel,
         )
 
         ams2.start()
