@@ -164,7 +164,10 @@ class Client(threading.Thread):
                 if display is not None:
                     display_val = str(self.speedKmh)
                     if self.display == "gear":
-                        gear = {-1: "R", 0: "N"}
+                        if self.wheel == fanatec_input.CSLEliteWheel:
+                            gear = {-1: "R", 0: "N"}
+                        elif self.wheel == fanatec_input.CSLP1V2Wheel:
+                            gear = {-1: "111", 0: "000", 15: "12"}
                         display_val = (
                             gear[self.gear] if self.gear in gear else str(self.gear)
                         )
@@ -178,6 +181,7 @@ class Client(threading.Thread):
                 self.wheel.set_sysfs_rpm(self._revLightsPercent, self.device)
 
         self.postrun()
+
         print(self, "finished.")
 
         if not self.ev.isSet():
