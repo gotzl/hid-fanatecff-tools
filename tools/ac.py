@@ -35,6 +35,7 @@ class AcClient(fanatec_led_server.Client):
         self.timeout_cnt = 0
         self.revbase = None
         self.revmax = None
+        self._gear = 0
 
     @staticmethod
     def client_data(sock, operation):
@@ -93,6 +94,7 @@ class AcClient(fanatec_led_server.Client):
         AcClient.client_data(self.sock, AcClient.DISMISS)
         self.revbase = None
         self.revmax = None
+        self._gear = 0
         self.sock.setblocking(1)
 
     def tick(self):
