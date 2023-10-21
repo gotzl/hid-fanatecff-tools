@@ -90,9 +90,10 @@ class AcClient(fanatec_led_server.Client):
             break
 
     def postrun(self):
-        AcClient.client_data(self.sock, AcClient.DISMISS)
         self.revbase = None
         self.revmax = None
+        # self.gear = None
+        AcClient.client_data(self.sock, AcClient.DISMISS)
         self.sock.setblocking(1)
 
     def tick(self):
