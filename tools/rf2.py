@@ -18,10 +18,10 @@ class RF2Client(fanatec_led_server.Client):
         for idx, vehicle in enumerate(self._scoring.mVehicles):
             if vehicle.mIsPlayer:
                 return idx
-        return None
+        return 0
 
     def prerun(self):
-        while not self.ev.isSet():
+        while not self.ev.is_set():
             try:
                 sim_info = rF2data.SimInfo()
                 self._scoring = sim_info.Rf2Scor
