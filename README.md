@@ -50,6 +50,54 @@ F1 2020 sends telemetry via UDP. This has to be activated in-game, for instance 
 
 Note: F1 2020 lacks support for TC-in-action/ABS-in-action.
 
+## WRC
+WRC sends telemetry via UDP, [see this for full information](https://answers.ea.com/t5/Guides-Documentation/EA-SPORTS-WRC-How-to-use-User-Datagram-Protocol-UDP-on-PC/m-p/13178407/thread-id/1).
+To activate and use wiht hid-fanatecff-tools, place a file called `hid-fanatecff-tools.json` in `.../My Documents/My Games/WRC/telemetry/udp/` with the following contents:
+```
+{
+	"versions":
+	{
+		"schema": 1,
+		"data": 3
+	},
+	"id": "hid-fanatecff-tools",
+	"header":
+	{
+		"channels": []
+	},
+	"packets": [
+		{
+			"id": "session_update",
+			"channels": [
+				"packet_uid",
+				"shiftlights_fraction",
+				"shiftlights_rpm_start",
+				"shiftlights_rpm_end",
+				"shiftlights_rpm_valid",
+				"vehicle_gear_index",
+				"vehicle_gear_index_neutral",
+				"vehicle_gear_index_reverse",
+				"vehicle_gear_maximum",
+				"vehicle_speed",
+				"vehicle_transmission_speed",
+				"vehicle_engine_rpm_current",
+			]
+		}
+	]
+}
+```
+and modify the `packets` list in `.../My Documents/My Games/WRC/telemetry/config.json` by adding
+```
+			{
+				"structure": "hid-fanatecff-tools",
+				"packet": "session_update",
+				"ip": "127.0.0.1",
+				"port": 20778,
+				"frequencyHz": 30,
+				"bEnabled": true
+			}
+```
+
 
 # Adding a game
 The specifics for each game are located in python files with their implementation of `fanatec_led_server.Client` class. Each file can by run on its own, although the defaults for the `device` may not match your device.

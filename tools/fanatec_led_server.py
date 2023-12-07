@@ -161,6 +161,7 @@ if __name__ == "__main__":
     from acc import AccClient
     from f1_2020 import F12020Client
     from rf2 import RF2Client
+    from wrc import WrcClient
 
     import argparse
     parser = argparse.ArgumentParser(description='Advanced functions for fanatec wheels with ACC')
@@ -178,7 +179,7 @@ if __name__ == "__main__":
         ev = threading.Event()
         
         threads = []
-        for typ in [F12020Client, AcClient, AccClient, RF2Client]:
+        for typ in [F12020Client, AcClient, AccClient, RF2Client, WrcClient]:
             threads.append(typ(ev, args.dbus, args.device, args.display))
 
         for thread in threads:    
