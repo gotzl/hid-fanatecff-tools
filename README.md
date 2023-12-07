@@ -93,7 +93,7 @@ and modify the `packets` list in `.../My Documents/My Games/WRC/telemetry/config
 				"packet": "session_update",
 				"ip": "127.0.0.1",
 				"port": 20778,
-				"frequencyHz": -1,
+				"frequencyHz": 30,
 				"bEnabled": true
 			}
 ```
