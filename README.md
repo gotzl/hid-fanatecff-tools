@@ -40,10 +40,7 @@ Note: AC lacks support for MAX RPMs and a fixed value of 8000 is used.
 ACC makes use of what's called `named-mapping` in windows. These `named-mappings` have to be bridged to linux. See the `tools/pyacc/README` on how to setup ACC.
 
 ## RF2
-For, RF2  there is a plugin that creates `named-mappings` which has to be installed first: https://forum.studio-397.com/index.php?threads/rf2-shared-memory-tools-for-developers.54282/
-(don't forget to activate the plugin in-game after installation).
-
-Then, the `named-mappings` have to be bridged to linux. See the `tools/pyRfactor2SharedMemory/README` on how to setup RF2.
+For RF2, there is a [plugin that creates `named-mappings`](https://github.com/schlegp/rF2SharedMemoryMapPlugin_Wine/blob/master/build) which has to be installed first (it's a fork of [this](https://forum.studio-397.com/index.php?threads/rf2-shared-memory-tools-for-developers.54282/) and creates `named-mappings` directly in `/dev/shm/`). The procedure is the same as for using [TinyPedal](https://github.com/s-victor/TinyPedal) in Linux. (don't forget to activate the plugin in-game after installation)
 
 ## F1 2020
 F1 2020 sends telemetry via UDP. This has to be activated in-game, for instance in the pause menu there is a 'telemetry' section. The defaults are sufficient.
