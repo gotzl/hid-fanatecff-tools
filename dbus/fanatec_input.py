@@ -10,6 +10,7 @@ from gi.repository import GLib
 FANATEC_VENDOR_ID='0EB7'
 CSL_ELITE_PEDALS_DEVICE_ID='6204'
 CSL_ELITE_PS4_WHEELBASE_DEVICE_ID='0005'
+CSL_DD_WHEELBASE_DEVICE_ID='0020'
 
 def get_sysfs_base(PID):
   sysfs_pattern = "/sys/module/hid_fanatec/drivers/hid:ftec_csl_elite/0003:%s:%s.*"%(FANATEC_VENDOR_ID, PID)
@@ -21,21 +22,7 @@ def get_sysfs_base(PID):
 class FanatecWheelBase(object):
   """
     <node>
-      <interface name='org.fanatec'>
-        <property name="RPM" type="ab" access="write">
-          <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
-        </property>     
-      </interface>    
-    </node>
-  """      
-  def __init__(self):
-    pass
-
-
-class CSLElite(object):
-  """
-    <node>
-      <interface name='org.fanatec.CSLElite'>
+      <interface name='org.fanatec.FanatecWheelBase'>
         <property name="SLOT" type="i" access="readwrite">
           <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
         </property>
@@ -43,9 +30,6 @@ class CSLElite(object):
           <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
         </property>
         <property name="FF" type="i" access="readwrite">
-          <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
-        </property>
-        <property name="DRI" type="i" access="readwrite">
           <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
         </property>
         <property name="FEI" type="i" access="readwrite">
@@ -59,28 +43,22 @@ class CSLElite(object):
         </property>
         <property name="DPR" type="i" access="readwrite">
           <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
-        </property>            
-        <property name="BLI" type="i" access="readwrite">
-          <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
-        </property>      
-        <property name="SHO" type="i" access="readwrite">
-          <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
-        </property>                                                                  
-      </interface>    
+        </property>
+      </interface>
     </node>
   """
   def __init__(self):
-    pass
+    self.device = None 
 
   @staticmethod
-  def get_sysfs(self, name, device=CSL_ELITE_PS4_WHEELBASE_DEVICE_ID):
-    return "%s/%s"%(get_sysfs_base(CSL_ELITE_PS4_WHEELBASE_DEVICE_ID), name)
-
+  def get_sysfs(name, device=CSL_ELITE_PS4_WHEELBASE_DEVICE_ID):
+    return "%s/%s"%(get_sysfs_base(device), name)
+  
   def tuning_get(self, name):
-    return int(open(self.get_sysfs(name),'r').read())
+    return int(open(FanatecWheelBase.get_sysfs(name, self.device),'r').read())
 
   def tuning_set(self, name, value):
-    return int(open(self.get_sysfs(name),'w').write(str(value)))
+    return int(open(FanatecWheelBase.get_sysfs(name, self.device),'w').write(str(value)))
 
   @property
   def SLOT(self):
@@ -105,14 +83,6 @@ class CSLElite(object):
   @FF.setter
   def FF(self, value):
     return self.tuning_set('FF', value)
-
-  @property
-  def DRI(self):
-    return self.tuning_get('DRI')
-
-  @DRI.setter
-  def DRI(self, value):
-    return self.tuning_set('DRI', value)
 
   @property
   def FEI(self):
@@ -145,22 +115,6 @@ class CSLElite(object):
   @DPR.setter
   def DPR(self, value):
     return self.tuning_set('DPR', value)
-
-  @property
-  def BLI(self):
-    return self.tuning_get('BLI')
-
-  @BLI.setter
-  def BLI(self, value):
-    return self.tuning_set('BLI', value)
-  
-  @property
-  def SHO(self):
-    return self.tuning_get('SHO')
-
-  @SHO.setter
-  def SHO(self, value):
-    return self.tuning_set('SHO', value)
 
 
 class CSLElitePedals(object):
@@ -247,6 +201,82 @@ class CSLEliteWheel(object):
     return set_sysfs_rpm(values)
 
   PropertiesChanged = signal()
+
+
+class CSLEliteWheelBase(FanatecWheelBase):
+  """
+    <node>
+      <interface name='org.fanatec.FanatecWheelBase'>
+        <property name="DRI" type="i" access="readwrite">
+          <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
+        </property>
+        <property name="BLI" type="i" access="readwrite">
+          <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
+        </property>
+        <property name="SHO" type="i" access="readwrite">
+          <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
+        </property>
+      </interface>
+    </node>
+  """
+  def __init__(self):
+    super(FanatecWheelBase, self).__init__()
+    self.device = CSL_ELITE_PS4_WHEELBASE_DEVICE_ID
+
+  @property
+  def DRI(self):
+    return self.tuning_get('DRI')
+
+  @DRI.setter
+  def DRI(self, value):
+    return self.tuning_set('DRI', value)
+
+  @property
+  def BLI(self):
+    return self.tuning_get('BLI')
+
+  @BLI.setter
+  def BLI(self, value):
+    return self.tuning_set('BLI', value)
+
+  @property
+  def SHO(self):
+    return self.tuning_get('SHO')
+
+  @SHO.setter
+  def SHO(self, value):
+    return self.tuning_set('SHO', value)
+
+
+class CSLDD(FanatecWheelBase):
+  def __init__(self):
+    super(FanatecWheelBase, self).__init__()
+    self.device = CSL_DD_WHEELBASE_DEVICE_ID
+
+  @property
+  def INT(self):
+    return self.tuning_get('INT')
+
+  @INT.setter
+  def INT(self, value):
+    return self.tuning_set('INT', value)
+
+  @property
+  def NIN(self):
+    return self.tuning_get('NIN')
+
+  @NIN.setter
+  def NIN(self, value):
+    return self.tuning_set('NIN', value)
+
+  @property
+  def FUL(self):
+    return self.tuning_get('FUL')
+
+  @FUL.setter
+  def FUL(self, value):
+    return self.tuning_set('FUL', value)
+
 
 def run():
   bus = SystemBus()
