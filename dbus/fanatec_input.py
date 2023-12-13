@@ -55,10 +55,10 @@ class FanatecWheelBase(object):
     return "%s/%s"%(get_sysfs_base(device), name)
   
   def tuning_get(self, name):
-    return int(open(FanatecWheelBase.get_sysfs(name, self.device),'r').read())
+    return int(open(f'{get_sysfs_base(self.device)}/tuning_menu/{name}','r').read())
 
   def tuning_set(self, name, value):
-    return int(open(FanatecWheelBase.get_sysfs(name, self.device),'w').write(str(value)))
+    return int(open(f'{get_sysfs_base(self.device)}/tuning_menu/{name}','w').write(str(value)))
 
   @property
   def SLOT(self):
