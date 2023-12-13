@@ -40,6 +40,7 @@ class RF2Client(fanatec_led_server.Client):
                 # check if the data is updating, if so, break out of the prerun loop
                 if self.mVersionUpdateBegin is not None and\
                         self.mVersionUpdateBegin != self._scoring.mVersionUpdateBegin:
+                    self.mVersionUpdateBegin = self._scoring.mVersionUpdateBegin
                     break
                 self.mVersionUpdateBegin = self._scoring.mVersionUpdateBegin
             except FileNotFoundError as e:
