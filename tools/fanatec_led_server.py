@@ -81,6 +81,10 @@ class Client(threading.Thread):
         return self._suggestedGear
 
     def run(self):
+        while not self.ev.isSet():
+            self._do_run()
+
+    def _do_run(self):
         print(self, 'waiting for game connection')
 
         self.prerun()
@@ -89,12 +93,14 @@ class Client(threading.Thread):
             sys.path.append('../dbus')
             import fanatec_input
             while not self.ev.isSet():
-                try:                    
+                try:
                     fanatec_input.get_sysfs_base(self.device)
                 except Exception as e:
                     print(e)
+                    self.postrun()
+                    print(self, 'finished.')
                     time.sleep(1)
-                    continue
+                    return
 
                 print('Found sysfs for device', self.device)
 
@@ -113,12 +119,6 @@ class Client(threading.Thread):
 
         rpms_maxed = 0
         while not self.ev.isSet():
-            # check that the device is still available
-            try:
-                fanatec_input.get_sysfs_base(self.device)
-            except Exception as e:
-                break
-
             if not self.tick():
                 break
 
@@ -138,22 +138,22 @@ class Client(threading.Thread):
                 set_pedals_rumble(self.absInAction, self.tcInAction)
             else:
                 rumble = '%i'%( (0xff if self.tcInAction else 0) << 16 | (0xff if self.absInAction else 0) << 8 )
+                try:
+                    if display is not None:
+                        display_val = str(self.speedKmh)
+                        if self.display == 'gear':
+                            gear = {-1: "R", 0: "N"}
+                            display_val = gear[self.gear] if self.gear in gear else str(self.gear)
+                        open(display, 'w').write(display_val)
 
-                if display is not None:
-                    display_val = str(self.speedKmh)
-                    if self.display == 'gear':
-                        gear = {-1: "R", 0: "N"}
-                        display_val = gear[self.gear] if self.gear in gear else str(self.gear)
-                    open(display, 'w').write(display_val)
-
-                if pedals is not None: open(pedals, 'w').write(str(rumble))
-                fanatec_input.CSLEliteWheel.set_sysfs_rpm(leds, self.device)
+                    if pedals is not None: open(pedals, 'w').write(str(rumble))
+                    fanatec_input.CSLEliteWheel.set_sysfs_rpm(leds, self.device)
+                except FileNotFoundError:
+                    # probably device got disconnected
+                    break
 
         self.postrun()
         print(self, 'finished.')
-
-        if not self.ev.isSet():
-             self.run()
 
 
 if __name__ == "__main__":
