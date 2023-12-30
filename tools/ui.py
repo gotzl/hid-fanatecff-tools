@@ -22,6 +22,7 @@ else:
     pdl = fanatec_input.CSLElitePedals()
     whl = fanatec_input.CSLEliteWheel()
     base = fanatec_input.CSLDD()
+    # base = fanatec_input.CSLEliteWheelBase()
 
 app = QApplication([])
 
@@ -122,7 +123,7 @@ tuningBox.setLayout(tuningBoxLayout)
 def changeSlot(slot):
     if slot == 'None' or slot == 'Auto':
         base.SLOT = 1
-    else:
+    elif int(slot) != base.SLOT:
         base.SLOT = int(slot)
     # wait for the slot change
     time.sleep(0.2)
@@ -146,18 +147,17 @@ class MainWidget(QWidget):
 
         context = pyudev.Context()
         monitor = pyudev.Monitor.from_netlink(context)
-        monitor.filter_by(subsystem='hid')
+        monitor.filter_by(subsystem='ftec_tuning')
         self.observer = MonitorObserver(monitor)
         self.observer.deviceEvent.connect(self.device_connected)
         monitor.start()
 
     def device_connected(self, device):
-        if 'DRIVER' not in device or device.get('DRIVER') != 'ftec_csl_elite':
-            return
-        # FIXME: should better check device.get('DEVPATH')
-        _pid = device.sys_name.split(':')[2].split('.')[0]
-        if _pid != base.device:
-            return
+        # FIXME: should better check device.get('DEVPATH') in case of multiple devices
+        # _pid = device.sys_name.split(':')[2].split('.')[0]
+        # if _pid != base.device:
+        #    return
+        slot.setCurrentText(str(base.SLOT))
         changeSlot(base.SLOT)
 
     def dragEnterEvent(self, event):
@@ -195,6 +195,7 @@ win.show()
 
 # select current slot and fill values
 slot.setCurrentIndex(base.SLOT)
-changeSlot(base.SLOT)
+for attr, v in tuning_sliders.items():
+    v.valuechange(getattr(base, attr), updateSlider=True)
 
 sys.exit(app.exec_())

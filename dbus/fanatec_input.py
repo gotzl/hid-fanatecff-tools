@@ -198,7 +198,7 @@ class CSLEliteWheel(object):
 
   @RPM.setter
   def RPM(self, values):
-    return set_sysfs_rpm(values)
+    return CSLEliteWheel.set_sysfs_rpm(values)
 
   PropertiesChanged = signal()
 
