@@ -13,7 +13,7 @@ import sys
 sys.path.append("../dbus")
 from fanatec_input import (
     CSL_ELITE_PS4_WHEELBASE_DEVICE_ID,
-    CSL_DD_P1_V2_WHEEL_ID,
+    CSL_DD_WHEELBASE_DEVICE_ID,
     CSLElite,
     CSLEliteWheel,
     CSLP1V2Wheel,
@@ -65,6 +65,8 @@ class AMS2DataParser:
         try:
             gear_data = data[45]
             gear = gear_data & 0xF
+            if gear == 15:
+                gear = -1
 
         except IndexError:
             print("Error unpacking gear: IndexError")
@@ -184,7 +186,7 @@ if __name__ == "__main__":
         ev = threading.Event()
         ams2 = AMS2Client(
             ev,
-            device=CSL_DD_P1_V2_WHEEL_ID,
+            device=CSL_DD_WHEELBASE_DEVICE_ID,
             dbus=False,
             wheel=CSLP1V2Wheel,
         )
