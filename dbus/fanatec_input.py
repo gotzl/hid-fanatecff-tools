@@ -397,6 +397,7 @@ class CSLP1V2Wheel(object):
             return my_values
 
         colour_value_list = get_colour(value)
+
         # here we write to the appropriate addresses in the appropriate fashion
         values = list(
             map(

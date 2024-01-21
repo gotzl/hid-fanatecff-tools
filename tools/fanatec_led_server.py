@@ -31,6 +31,11 @@ def clear():
     set_display(-1)
 
 
+wheels_dict = {
+    fanatec_input.CSL_STEERING_WHEEL_P1_V2: fanatec_input.CSLP1V2Wheel,
+}
+
+
 class Client(threading.Thread):
     def __init__(
         self,
@@ -38,7 +43,6 @@ class Client(threading.Thread):
         dbus=True,
         device=None,
         display="gear",
-        wheel=fanatec_input.CSLEliteWheel,
     ):
         threading.Thread.__init__(self)
         if not dbus and device is None:
@@ -56,7 +60,14 @@ class Client(threading.Thread):
         self._suggestedGear = 0
 
         # hold wheel data
-        self.wheel = wheel
+        self.wheel = self.get_wheel_code()
+
+    def get_wheel_code(self):
+        base = fanatec_input.get_sysfs_base(self.device)
+        with open(base + "/wheel_id") as f:
+            # convert e.g. "0x0005\n" to "0005"
+            wheel_id = f.read().replace("\n", "")[2:]
+        return wheels_dict[wheel_id]
 
     def prerun(self):
         pass
@@ -102,9 +113,6 @@ class Client(threading.Thread):
         self.prerun()
 
         if not self.dbus:
-            # sys.path.append("../dbus")
-            # import fanatec_input
-
             while not self.ev.isSet():
                 try:
                     fanatec_input.get_sysfs_base(self.device)
