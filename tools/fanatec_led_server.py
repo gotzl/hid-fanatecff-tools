@@ -141,7 +141,7 @@ class Client(threading.Thread):
             if not self.tick():
                 break
 
-            if self._revLightsPercent > 0.95:
+            if self._revLightsPercent > 95:
                 rpms_maxed += 1
             else:
                 rpms_maxed = 0
