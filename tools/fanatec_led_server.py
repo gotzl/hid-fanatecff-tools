@@ -108,7 +108,13 @@ class Client(threading.Thread):
         return self._suggestedGear
 
     def run(self):
-        print(self, "waiting for game connection")
+
+        while not self.ev.isSet():
+            self._do_run()
+
+    def _do_run(self):
+        print(self, 'waiting for game connection')
+
 
         self.prerun()
 
@@ -118,8 +124,10 @@ class Client(threading.Thread):
                     fanatec_input.get_sysfs_base(self.device)
                 except Exception as e:
                     print(e)
+                    self.postrun()
+                    print(self, 'finished.')
                     time.sleep(1)
-                    continue
+                    return
 
                 print("Found sysfs for device", self.device)
 
@@ -140,12 +148,6 @@ class Client(threading.Thread):
 
         rpms_maxed = 0
         while not self.ev.isSet():
-            # check that the device is still available
-            try:
-                fanatec_input.get_sysfs_base(self.device)
-            except Exception as e:
-                break
-
             if not self.tick():
                 break
 
@@ -188,10 +190,10 @@ class Client(threading.Thread):
                 self.wheel.get_sysfs_rpm(self.device)
                 self.wheel.set_sysfs_rpm(self._revLightsPercent, self.device)
 
+
         self.postrun()
 
         print(self, "finished.")
-
         if not self.ev.isSet():
             self.run()
 
@@ -201,6 +203,7 @@ if __name__ == "__main__":
     from acc import AccClient
     from f1_2020 import F12020Client
     from rf2 import RF2Client
+    from wrc import WrcClient
 
     import argparse
 
@@ -235,7 +238,7 @@ if __name__ == "__main__":
         ev = threading.Event()
 
         threads = []
-        for typ in [F12020Client, AcClient, AccClient, RF2Client]:
+        for typ in [F12020Client, AcClient, AccClient, RF2Client, WrcClient]:
             threads.append(typ(ev, args.dbus, args.device, args.display))
 
         for thread in threads:

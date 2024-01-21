@@ -40,15 +40,60 @@ Note: AC lacks support for MAX RPMs and a fixed value of 8000 is used.
 ACC makes use of what's called `named-mapping` in windows. These `named-mappings` have to be bridged to linux. See the `tools/pyacc/README` on how to setup ACC.
 
 ## RF2
-For, RF2  there is a plugin that creates `named-mappings` which has to be installed first: https://forum.studio-397.com/index.php?threads/rf2-shared-memory-tools-for-developers.54282/
-(don't forget to activate the plugin in-game after installation).
-
-Then, the `named-mappings` have to be bridged to linux. See the `tools/pyRfactor2SharedMemory/README` on how to setup RF2.
+For RF2, there is a [plugin that creates `named-mappings`](https://github.com/schlegp/rF2SharedMemoryMapPlugin_Wine/blob/master/build) which has to be installed first (it's a fork of [this](https://forum.studio-397.com/index.php?threads/rf2-shared-memory-tools-for-developers.54282/) and creates `named-mappings` directly in `/dev/shm/`). The procedure is the same as for using [TinyPedal](https://github.com/s-victor/TinyPedal) in Linux. (don't forget to activate the plugin in-game after installation)
 
 ## F1 2020
 F1 2020 sends telemetry via UDP. This has to be activated in-game, for instance in the pause menu there is a 'telemetry' section. The defaults are sufficient.
 
 Note: F1 2020 lacks support for TC-in-action/ABS-in-action.
+
+## WRC
+WRC sends telemetry via UDP, [see this for full information](https://answers.ea.com/t5/Guides-Documentation/EA-SPORTS-WRC-How-to-use-User-Datagram-Protocol-UDP-on-PC/m-p/13178407/thread-id/1).
+To activate and use wiht hid-fanatecff-tools, place a file called `hid-fanatecff-tools.json` in `.../My Documents/My Games/WRC/telemetry/udp/` with the following contents:
+```
+{
+	"versions":
+	{
+		"schema": 1,
+		"data": 3
+	},
+	"id": "hid-fanatecff-tools",
+	"header":
+	{
+		"channels": []
+	},
+	"packets": [
+		{
+			"id": "session_update",
+			"channels": [
+				"packet_uid",
+				"shiftlights_fraction",
+				"shiftlights_rpm_start",
+				"shiftlights_rpm_end",
+				"shiftlights_rpm_valid",
+				"vehicle_gear_index",
+				"vehicle_gear_index_neutral",
+				"vehicle_gear_index_reverse",
+				"vehicle_gear_maximum",
+				"vehicle_speed",
+				"vehicle_transmission_speed",
+				"vehicle_engine_rpm_current",
+			]
+		}
+	]
+}
+```
+and modify the `packets` list in `.../My Documents/My Games/WRC/telemetry/config.json` by adding
+```
+			{
+				"structure": "hid-fanatecff-tools",
+				"packet": "session_update",
+				"ip": "127.0.0.1",
+				"port": 20778,
+				"frequencyHz": 30,
+				"bEnabled": true
+			}
+```
 
 
 # Adding a game
