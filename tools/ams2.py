@@ -1,11 +1,14 @@
 import struct
 import threading
 import fanatec_led_server
+import socket
+import time
+import select
 
-
-from scapy.all import sniff, UDP
 from dataclasses import dataclass
 from enum import IntEnum
+
+from typing import Optional
 
 # pick up the wheel IDs
 import sys
@@ -115,25 +118,22 @@ class AMS2DataParser:
             max_rpm = 1
         return max_rpm
 
-    # @staticmethod
-    def process_packet(self, packet) -> CarData:
-        if UDP in packet and packet[UDP].dport == 5606:
-            data = packet.load
-            packet_type = self.get_packet_type(data)
-            if self.verbose:
-                print("Packet type:", packet_type)
-            if packet_type == PacketType.CAR_PHYSICS:
-                gear = self.get_gear(data)
-                rpm = self.get_rpm(data)
-                max_rpm = self.get_max_rpm(data)
-                speed = self.get_speed(data)
-                return CarData(gear, rpm, max_rpm, speed)
-            else:
-                return CarData(0, 0, 1, 0)
+    def process_packet(self, data) -> Optional[CarData]:
+        packet_type = self.get_packet_type(data[0:44])
+        if self.verbose:
+            print("Packet type:", packet_type)
+        if packet_type == PacketType.CAR_PHYSICS:
+            gear = self.get_gear(data)
+            rpm = self.get_rpm(data)
+            max_rpm = self.get_max_rpm(data)
+            speed = self.get_speed(data)
+            return CarData(gear, rpm, max_rpm, speed)
+        else:
+            return None
 
 
 class AMS2Client(fanatec_led_server.Client):
-    UDP_IP = "127.0.0.1"
+    UDP_IP = "0.0.0.0"
     UDP_PORT = 5606
 
     def __init__(
@@ -142,26 +142,39 @@ class AMS2Client(fanatec_led_server.Client):
         dbus=True,
         device=None,
         display="gear",
-        wheel=CSLEliteWheel,
-        interface="enp34s0",
     ):
-        fanatec_led_server.Client.__init__(self, ev, dbus, device, display, wheel)
+        fanatec_led_server.Client.__init__(self, ev, dbus, device, display)
         self.data_parser = AMS2DataParser()
 
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.bind((self.UDP_IP, self.UDP_PORT))
+        self.sock.setblocking(0)
+        self.timeout_cnt = 0
+
     def prerun(self):
-        pass
+        while not self.ev.isSet():
+            try:
+                self.sock.recv(2048)
+                break
+            except Exception as e:
+                time.sleep(1)
 
     def postrun(self):
-        # AMS2Client.client_data(self.sock, AMS2Client.DISMISS)
         pass
 
     def tick(self):
-        packet = sniff(
-            iface="enp34s0",
-            filter="udp port 5606",
-            # prn=self.data_parser.process_packet,
-            count=1,
-        )[0]
+        ready = select.select([self.sock], [], [], 0.2)
+        if not ready[0]:
+            print("Timeout waiting for AMS2 data,", self.timeout_cnt)
+            self.timeout_cnt += 1
+            if self.timeout_cnt > 10:
+                raise Exception("Too many timeouts received!")
+            return False
+
+        self.timeout_cnt = 0
+        packet = self.sock.recv(2048)
+
+        # returns None if the packet is not a car physics packet
         car_data: CarData = self.data_parser.process_packet(packet)
 
         # not yet implemented stuff
@@ -169,14 +182,11 @@ class AMS2Client(fanatec_led_server.Client):
         self._tcInAction = False
         self._suggestedGear = 0
 
-        # currently implemented stuff
-        self._gear = car_data.gear
-        self._revLightsPercent = 100 * car_data.rpm / car_data.max_rpm
-        self._speedKmh = car_data.speed
-        # else:
-        # self._gear = 0
-        # self._revLightsPercent = 0
-        # self._speedKmh = 0
+        if car_data is not None:
+            # currently implemented stuff
+            self._gear = car_data.gear
+            self._revLightsPercent = 100 * car_data.rpm / car_data.max_rpm
+            self._speedKmh = car_data.speed
 
         return True
 
@@ -188,7 +198,6 @@ if __name__ == "__main__":
             ev,
             device=CSL_DD_WHEELBASE_DEVICE_ID,
             dbus=False,
-            wheel=CSLP1V2Wheel,
         )
 
         ams2.start()
