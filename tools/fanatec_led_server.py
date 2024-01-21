@@ -175,7 +175,7 @@ class Client(threading.Thread):
                         if self.wheel == fanatec_input.CSLEliteWheel:
                             gear = {-1: "R", 0: "N"}
                         elif self.wheel == fanatec_input.CSLP1V2Wheel:
-                            gear = {-1: "111", 0: "000", 15: "12"}
+                            gear = {-1: "-1", 0: "000"}
                         display_val = (
                             gear[self.gear] if self.gear in gear else str(self.gear)
                         )
