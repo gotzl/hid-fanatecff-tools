@@ -8,9 +8,27 @@ from pydbus import SystemBus
 from gi.repository import GLib
 
 FANATEC_VENDOR_ID = "0EB7"
-CSL_ELITE_PEDALS_DEVICE_ID = "6204"
+# Base IDs
+CLUBSPORT_V2_WHEELBASE_DEVICE_ID = "0001"
+CLUBSPORT_V25_WHEELBASE_DEVICE_ID = "0004"
+CLUBSPORT_PEDALS_V3_DEVICE_ID = "183b"
+PODIUM_WHEELBASE_DD1_DEVICE_ID = "0006"
+PODIUM_WHEELBASE_DD2_DEVICE_ID = "0007"
+CSL_ELITE_WHEELBASE_DEVICE_ID = "0E03"
 CSL_ELITE_PS4_WHEELBASE_DEVICE_ID = "0005"
-CSL_DD_P1_V2_WHEEL_ID = "0020"
+CSL_ELITE_PEDALS_DEVICE_ID = "6204"
+CSL_DD_WHEELBASE_DEVICE_ID = "0020"
+CSR_ELITE_WHEELBASE_DEVICE_ID = "0011"
+
+# Wheel IDs
+CSL_STEERING_WHEEL_P1_V2 = "0008"
+CSL_ELITE_STEERING_WHEEL_WRC_ID = "0112"
+CSL_ELITE_STEERING_WHEEL_MCLAREN_GT3_V2_ID = "280b"
+CLUBSPORT_STEERING_WHEEL_F1_IS_ID = "1102"
+CLUBSPORT_STEERING_WHEEL_FORMULA_V2_ID = "280a"
+PODIUM_STEERING_WHEEL_PORSCHE_911_GT3_R_ID = "050c"
+
+
 import time
 
 
@@ -293,11 +311,11 @@ class CSLP1V2Wheel(object):
     """
 
     @staticmethod
-    def get_sysfs(name, device=CSL_DD_P1_V2_WHEEL_ID):
+    def get_sysfs(name, device=CSL_DD_WHEELBASE_DEVICE_ID):
         return "%s/%s" % (get_sysfs_base(device), name)
 
     @staticmethod
-    def get_sysfs_rpm(device=CSL_DD_P1_V2_WHEEL_ID):
+    def get_sysfs_rpm(device=CSL_DD_WHEELBASE_DEVICE_ID):
         sysfs_base = get_sysfs_base(device)
         return "%s/leds/0003:0EB7:%s.%s::RPM" % (
             sysfs_base,
@@ -306,7 +324,7 @@ class CSLP1V2Wheel(object):
         )
 
     @staticmethod
-    def set_sysfs_rpm(value, device=CSL_DD_P1_V2_WHEEL_ID):
+    def set_sysfs_rpm(value, device=CSL_DD_WHEELBASE_DEVICE_ID):
         """
         On the CSL DD P1 V2 (and likely the BMW Wheel)
         there is a single LED light that changes colour.
