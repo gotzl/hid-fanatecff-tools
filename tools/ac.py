@@ -116,7 +116,6 @@ class AcClient(fanatec_led_server.Client):
 
         #  handling the rev measurement
         if self.revbase is None:
-            time.sleep(0.5)  # wait for base rpms to stabilise
             rpms = int(struct.unpack("<f", data[68:72])[0])
             self.revbase = rpms  # save the base value
         else:
