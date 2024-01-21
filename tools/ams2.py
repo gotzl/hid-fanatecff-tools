@@ -1,9 +1,6 @@
-import socket
 import struct
-import select
 import threading
 import fanatec_led_server
-import scapy
 
 
 from scapy.all import sniff, UDP
