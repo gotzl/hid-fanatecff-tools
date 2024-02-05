@@ -17,9 +17,6 @@ sys.path.append("../dbus")
 from fanatec_input import (
     CSL_ELITE_PS4_WHEELBASE_DEVICE_ID,
     CSL_DD_WHEELBASE_DEVICE_ID,
-    CSLElite,
-    CSLEliteWheel,
-    CSLP1V2Wheel,
 )
 
 
