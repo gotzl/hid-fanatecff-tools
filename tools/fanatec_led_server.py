@@ -206,6 +206,7 @@ if __name__ == "__main__":
     from f1_2020 import F12020Client
     from rf2 import RF2Client
     from wrc import WrcClient
+    from ams2 import AMS2Client
 
     import argparse
 

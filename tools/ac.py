@@ -9,8 +9,6 @@ import sys
 
 sys.path.append("../dbus")
 from fanatec_input import (
-    CSL_ELITE_PS4_WHEELBASE_DEVICE_ID,
-    CSL_DD_P1_V2_WHEEL_ID,
     CSLElite,
     CSLEliteWheel,
     CSLP1V2Wheel,
@@ -28,8 +26,8 @@ class AcClient(fanatec_led_server.Client):
     SUBSCRIBE_SPOT = 2
     DISMISS = 3
 
-    def __init__(self, ev, dbus=True, device=None, display="gear", wheel=CSLEliteWheel):
-        fanatec_led_server.Client.__init__(self, ev, dbus, device, display, wheel)
+    def __init__(self, ev, dbus=True, device=None, display="gear"):
+        fanatec_led_server.Client.__init__(self, ev, dbus, device, display)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setblocking(0)
         self.timeout_cnt = 0
@@ -82,9 +80,12 @@ class AcClient(fanatec_led_server.Client):
             # print("Car name:", car_name)
             # breakpoint()
             if self.revmax is None:
-                self.revmax = int(car_data[car_name])
-                print(car_name)
-                print("Max revs:", self.revmax)
+                if car_name in car_data:
+                    self.revmax = int(car_data[car_name])
+                    print("Max revs for '%s': %i" % (car_name, self.revmax))
+                else:
+                    self.revmax = 9000
+                    print("Car '%s' not found in car_data! Setting max revs to %i." % (car_name, self.revmax))
 
             # confirm
             AcClient.client_data(self.sock, AcClient.SUBSCRIBE_UPDATE)
@@ -131,7 +132,7 @@ class AcClient(fanatec_led_server.Client):
 if __name__ == "__main__":
     try:
         ev = threading.Event()
-        ac = AcClient(ev, device="0020", dbus=False, wheel=CSLP1V2Wheel)
+        ac = AcClient(ev, device="0020", dbus=False)
         ac.start()  # start the thread...
         ac.join()  # run until the thread terminates
 
