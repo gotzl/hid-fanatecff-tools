@@ -34,10 +34,13 @@ However, many games offer telemetry vie UDP or shared memory, which is used by `
 ## AC
 AC has a UDP endpoint running per default, nothing todo here :)
 
-Note: AC lacks support for MAX RPMs and a fixed value of 8000 is used.
+Note: AC UDP protocol lacks support for MAX RPMs, so a car database (`car_data.json`) is used to look up MAX RPMs for selected car. 9000 RPM is used as a fallback value.
 
 ## ACC
 ACC makes use of what's called `named-mapping` in windows. These `named-mappings` have to be bridged to linux. See the `tools/pyacc/README` on how to setup ACC.
+
+## AMS2
+AMS2 sends telemetry via UDP. This has to be activated in-game: `Options -> System -> UDP Protocol Version -> Projects CARS2`.
 
 ## RF2
 For RF2, there is a [plugin that creates `named-mappings`](https://github.com/schlegp/rF2SharedMemoryMapPlugin_Wine/blob/master/build) which has to be installed first (it's a fork of [this](https://forum.studio-397.com/index.php?threads/rf2-shared-memory-tools-for-developers.54282/) and creates `named-mappings` directly in `/dev/shm/`). The procedure is the same as for using [TinyPedal](https://github.com/s-victor/TinyPedal) in Linux. (don't forget to activate the plugin in-game after installation)
