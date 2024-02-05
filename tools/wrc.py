@@ -58,7 +58,7 @@ class WrcClient(fanatec_led_server.Client):
         packet = WrcPacket.from_buffer_copy(data)
         self._speedKmh = packet.vehicle_transmission_speed
         self._gear = packet.vehicle_gear_index
-        self._revLightsPercent = packet.shiftlights_fraction
+        self._revLightsPercent = packet.shiftlights_fraction * 100
         self._suggestedGear = min(self._gear + 1, packet.vehicle_gear_maximum) \
             if packet.shiftlights_rpm_end > packet.vehicle_engine_rpm_current and packet.shiftlights_rpm_valid \
             else self._gear
