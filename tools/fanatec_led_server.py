@@ -203,7 +203,7 @@ class Client(threading.Thread):
 if __name__ == "__main__":
     from ac import AcClient
     from acc import AccClient
-    from f1_2020 import F12020Client
+    from f1_23 import F1_23Client
     from rf2 import RF2Client
     from wrc import WrcClient
     from ams2 import AMS2Client
@@ -241,7 +241,7 @@ if __name__ == "__main__":
         ev = threading.Event()
 
         threads = []
-        for typ in [F12020Client, AcClient, AccClient, RF2Client, WrcClient, AMS2Client]:
+        for typ in [F1_23Client, AcClient, AccClient, RF2Client, WrcClient, AMS2Client]:
             threads.append(typ(ev, args.dbus, args.device, args.display))
 
         for thread in threads:

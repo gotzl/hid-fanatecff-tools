@@ -7,3 +7,6 @@
 [submodule "tools/f1_2020_telemetry"]
 	path = tools/f1_2020_telemetry
 	url = https://gitlab.com/gparent/f1-2020-telemetry.git
+[submodule "tools/f1_23_telemetry"]
+	path = tools/f1_23_telemetry
+	url = https://github.com/F1SimRacing/f1-23-telemetry.git

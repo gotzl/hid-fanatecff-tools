@@ -45,10 +45,10 @@ AMS2 sends telemetry via UDP. This has to be activated in-game: `Options -> Syst
 ## RF2
 For RF2, there is a [plugin that creates `named-mappings`](https://github.com/schlegp/rF2SharedMemoryMapPlugin_Wine/blob/master/build) which has to be installed first (it's a fork of [this](https://forum.studio-397.com/index.php?threads/rf2-shared-memory-tools-for-developers.54282/) and creates `named-mappings` directly in `/dev/shm/`). The procedure is the same as for using [TinyPedal](https://github.com/s-victor/TinyPedal) in Linux. (don't forget to activate the plugin in-game after installation)
 
-## F1 2020
-F1 2020 sends telemetry via UDP. This has to be activated in-game, for instance in the pause menu there is a 'telemetry' section. The defaults are sufficient.
+## F1 X
+F1 X sends telemetry via UDP. This has to be activated in-game, for instance in the pause menu there is a 'telemetry' section. The defaults are sufficient.
 
-Note: F1 2020 lacks support for TC-in-action/ABS-in-action.
+Note: F1 X lacks support for TC-in-action/ABS-in-action.
 
 ## WRC
 WRC sends telemetry via UDP, [see this for full information](https://answers.ea.com/t5/Guides-Documentation/EA-SPORTS-WRC-How-to-use-User-Datagram-Protocol-UDP-on-PC/m-p/13178407/thread-id/1).
