@@ -209,6 +209,7 @@ if __name__ == "__main__":
     from ams2 import AMS2Client
 
     import argparse
+    import signal
 
     parser = argparse.ArgumentParser(
         description="Advanced functions for fanatec wheels with ACC"
@@ -239,6 +240,10 @@ if __name__ == "__main__":
 
     try:
         ev = threading.Event()
+
+        def handle_sigterm(sig, frame):
+            ev.set()
+        signal.signal(signal.SIGTERM, handle_sigterm)
 
         threads = []
         for typ in [F1_23Client, AcClient, AccClient, RF2Client, WrcClient, AMS2Client]:
