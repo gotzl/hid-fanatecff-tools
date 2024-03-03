@@ -31,7 +31,7 @@ PODIUM_STEERING_WHEEL_PORSCHE_911_GT3_R_ID = "0c"
 
 def get_sysfs_base(PID):
     sysfs_pattern = (
-        "/sys/module/hid_fanatec/drivers/hid:ftec_csl_elite/0003:%s:%s.*"
+        "/sys/module/hid_fanatec/drivers/hid:fanatec/0003:%s:%s.*"
         % (FANATEC_VENDOR_ID, PID)
     )
     sysfs = glob.glob(sysfs_pattern)
