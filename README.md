@@ -54,6 +54,15 @@ Options -> System -> UDP Frequency -> Enabled(A value of 1 to 9)
 Options -> System -> UDP Protocol Version -> Projects CARS2
 ```
 
+## PCARS2
+
+PCARS2 sends telemetry via UDP. This has to be activated in-game:
+
+```text
+Options -> System -> UDP Frequency -> Enabled(A value of 1 to 9)
+Options -> System -> UDP Protocol Version -> Projects CARS2
+```
+
 ## RF2
 
 For RF2, there is a [plugin that creates `named-mappings`](https://github.com/schlegp/rF2SharedMemoryMapPlugin_Wine/blob/master/build) which has to be installed first (it's a fork of [this](https://forum.studio-397.com/index.php?threads/rf2-shared-memory-tools-for-developers.54282/) and creates `named-mappings` directly in `/dev/shm/`). The procedure is the same as for using [TinyPedal](https://github.com/s-victor/TinyPedal) in Linux. (don't forget to activate the plugin in-game after installation)
