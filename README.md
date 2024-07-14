@@ -47,7 +47,12 @@ ACC makes use of what's called `named-mapping` in windows. These `named-mappings
 
 ## AMS2
 
-AMS2 sends telemetry via UDP. This has to be activated in-game: `Options -> System -> UDP Protocol Version -> Projects CARS2`.
+AMS2 sends telemetry via UDP. This has to be activated in-game:
+
+```text
+Options -> System -> UDP Frequency -> Enabled(A value of 1 to 9)
+Options -> System -> UDP Protocol Version -> Projects CARS2
+```
 
 ## RF2
 
