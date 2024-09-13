@@ -91,7 +91,7 @@ class AcClient(fanatec_led_server.Client):
                 else:
                     self.revmax = 4000
                     self.autorpm = 1
-                    print("Car '%s' not found in car_data! Setting max revs to %i. Rev the car into the limiter while in neutral to adjust. After max RPM has reached it saves the value." % (car_name, self.revmax))
+                    print("Car '%s' not found in car_data! Setting max revs to %i. Rev the car into the limiter while in neutral to adjust." % (car_name, self.revmax))
 
             # confirm
             AcClient.client_data(self.sock, AcClient.SUBSCRIBE_UPDATE)
