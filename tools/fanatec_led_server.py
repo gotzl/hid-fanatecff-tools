@@ -194,7 +194,7 @@ class Client(threading.Thread):
 
                             else:
                                 dt = datetime.datetime.now()
-                                if int(str(dt.minute).rjust(2,'0') + str(dt.second).rjust(2, '0') + str(dt.microsecond)) - int(str(neutral_timer.minute).rjust(2, '0') + str(neutral_timer.second).rjust(2, '0') + str(neutral_timer.microsecond)) >= 350000:
+                                if ((dt.minute * 60000000) + (dt.second * 1000000) + dt.microsecond) - ((neutral_timer.minute * 60000000) + (neutral_timer.second * 1000000) + neutral_timer.microsecond) >= 350000:
                                     lastgear = 0
 
 
