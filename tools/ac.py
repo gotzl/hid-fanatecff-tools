@@ -37,6 +37,7 @@ class AcClient(fanatec_led_server.Client):
         self._gear = 0
         self.autorpm = 0
         self.revsavetimer = None
+        self.car_name = None
 
     @staticmethod
     def client_data(sock, operation):
@@ -81,6 +82,7 @@ class AcClient(fanatec_led_server.Client):
                 .strip("\x00")
                 .replace("\x00", "")
             )[:-1]
+            self.car_name = car_name
             # print("Car name:", car_name)
             # breakpoint()
             if self.revmax is None:
@@ -140,7 +142,11 @@ class AcClient(fanatec_led_server.Client):
         if self.revsavetimer != None and ((datetime.datetime.now().minute * 60)  + datetime.datetime.now().second)  - ((self.revsavetimer.minute * 60 ) + self.revsavetimer.second) >= 3:
             self.autorpm = 0
             self.revsavetimer = None
-            print("RPM adjusted to %i"%(self.revmax))
+            print("revlimiter adjusted to %i"%(self.revmax))
+            car_data[self.car_name] = "%i"%(self.revmax)
+            with open("car_data.json", "w") as write_file:
+                json.dump(car_data, write_file, indent=4)
+            print("revlimit saved to database")
 
         self._gear = int.from_bytes(data[76:80], byteorder="little") - 1
         return True
