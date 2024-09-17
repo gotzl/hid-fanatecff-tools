@@ -3,6 +3,7 @@ import sys
 import os
 import time
 import threading
+import datetime
 
 sys.path.append("../dbus")
 import fanatec_input
@@ -149,6 +150,8 @@ class Client(threading.Thread):
             print(self, "connected")
 
         rpms_maxed = 0
+        lastgear = 0
+        neutral_timer = None
         while not self.ev.isSet():
             if not self.tick():
                 break
@@ -180,10 +183,24 @@ class Client(threading.Thread):
                             gear = {-1: "R", 0: "N"}
                         elif self.wheel == fanatec_input.CSLP1V2Wheel:
                             gear = {-1: "-1", 0: "000"}
-                        display_val = (
-                            gear[self.gear] if self.gear in gear else str(self.gear)
-                        )
 
+                        if self.gear != 0:
+                            lastgear = self.gear
+                            neutral_timer = None
+
+                        elif self.gear == 0:
+                            if neutral_timer == None:
+                                neutral_timer = datetime.datetime.now()
+
+                            else:
+                                dt = datetime.datetime.now()
+                                if ((dt.minute * 60000000) + (dt.second * 1000000) + dt.microsecond) - ((neutral_timer.minute * 60000000) + (neutral_timer.second * 1000000) + neutral_timer.microsecond) >= 350000:
+                                    lastgear = 0
+
+
+                        display_val = (
+                            gear[lastgear] if lastgear in gear else str(lastgear)
+                        )
                         # print(display_val)
                     open(display, "w").write(display_val)
 
