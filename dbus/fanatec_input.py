@@ -24,6 +24,7 @@ CSR_ELITE_WHEELBASE_DEVICE_ID = "0011"
 CSL_STEERING_WHEEL_P1_V2 = "08"
 CSL_ELITE_STEERING_WHEEL_WRC_ID = "04"
 CSL_ELITE_STEERING_WHEEL_MCLAREN_GT3_V2_ID = "0b"
+CLUBSPORT_STEERING_WHEEL_F1_2020 = "2e"
 CLUBSPORT_STEERING_WHEEL_F1_IS_ID = "21"
 CLUBSPORT_STEERING_WHEEL_FORMULA_V2_ID = "0a"
 PODIUM_STEERING_WHEEL_PORSCHE_911_GT3_R_ID = "0c"
@@ -37,6 +38,11 @@ def get_sysfs_base(PID):
     sysfs = glob.glob(sysfs_pattern)
     if len(sysfs) == 0:
         raise Exception("Device with PID=%s not found (%s)" % (PID, sysfs_pattern))
+
+    for s in sysfs:
+        wheel_id = os.path.join(s, "wheel_id")
+        if os.path.isfile(wheel_id):
+            return s
     return sysfs[0]
 
 

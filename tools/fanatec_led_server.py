@@ -35,6 +35,7 @@ wheels_dict = {
     fanatec_input.CSL_STEERING_WHEEL_P1_V2: fanatec_input.CSLP1V2Wheel,
     fanatec_input.CSL_ELITE_STEERING_WHEEL_WRC_ID: fanatec_input.CSLP1V2Wheel,
     fanatec_input.CLUBSPORT_STEERING_WHEEL_F1_IS_ID: fanatec_input.CSLEliteWheel,
+    fanatec_input.CLUBSPORT_STEERING_WHEEL_F1_2020: fanatec_input.CSLEliteWheel,
 }
 
 
