@@ -43,7 +43,7 @@ def get_sysfs_base(PID):
         wheel_id = os.path.join(s, "wheel_id")
         if os.path.isfile(wheel_id):
             return s
-    return sysfs[0]
+    raise Exception(f'Failed to detect the wheel_id. Please check, if the device with PID={PID} has a wheel_id file. Searched directories: {sysfs}')
 
 
 class FanatecWheelBase(object):
