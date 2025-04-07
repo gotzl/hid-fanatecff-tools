@@ -6,6 +6,7 @@ import fanatec_led_server
 import time
 import json
 import sys
+import datetime
 
 sys.path.append("../dbus")
 from fanatec_input import (
@@ -34,6 +35,9 @@ class AcClient(fanatec_led_server.Client):
         self.revbase = None
         self.revmax = None
         self._gear = 0
+        self.autorpm = 0
+        self.revsavetimer = None
+        self.car_name = None
 
     @staticmethod
     def client_data(sock, operation):
@@ -57,6 +61,7 @@ class AcClient(fanatec_led_server.Client):
             (AcClient.UDP_IP, AcClient.UDP_PORT),
         )
 
+
     def prerun(self):
         self.sock.setblocking(0)
 
@@ -77,15 +82,18 @@ class AcClient(fanatec_led_server.Client):
                 .strip("\x00")
                 .replace("\x00", "")
             )[:-1]
+            self.car_name = car_name
             # print("Car name:", car_name)
             # breakpoint()
             if self.revmax is None:
                 if car_name in car_data:
                     self.revmax = int(car_data[car_name])
+                    autorpm = 0
                     print("Max revs for '%s': %i" % (car_name, self.revmax))
                 else:
-                    self.revmax = 9000
-                    print("Car '%s' not found in car_data! Setting max revs to %i." % (car_name, self.revmax))
+                    self.revmax = 4000
+                    self.autorpm = 1
+                    print("Car '%s' not found in car_data! Setting max revs to %i. Rev the car into the limiter while in neutral to adjust." % (car_name, self.revmax))
 
             # confirm
             AcClient.client_data(self.sock, AcClient.SUBSCRIBE_UPDATE)
@@ -125,8 +133,24 @@ class AcClient(fanatec_led_server.Client):
                 rpms - self.revbase,
                 self.revmax - self.revbase,
             )
+
+        if self.revmax < rpms and self.autorpm == 1:
+            self.revmax = rpms
+            self.revsavetimer= datetime.datetime.now()
+
+
+        if self.revsavetimer != None and ((datetime.datetime.now().minute * 60)  + datetime.datetime.now().second)  - ((self.revsavetimer.minute * 60 ) + self.revsavetimer.second) >= 3:
+            self.autorpm = 0
+            self.revsavetimer = None
+            print("revlimiter adjusted to %i"%(self.revmax))
+            car_data[self.car_name] = "%i"%(self.revmax)
+            with open("car_data.json", "w") as write_file:
+                json.dump(car_data, write_file, indent=4)
+            print("revlimit saved to database")
+
         self._gear = int.from_bytes(data[76:80], byteorder="little") - 1
         return True
+
 
 
 if __name__ == "__main__":
