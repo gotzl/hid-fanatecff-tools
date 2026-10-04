@@ -5,9 +5,7 @@ import threading
 import fanatec_led_server
 import time
 import json
-import sys
 
-sys.path.append("../dbus")
 from fanatec_input import (
     CSLElite,
     CSLEliteWheel,
@@ -26,8 +24,8 @@ class AcClient(fanatec_led_server.Client):
     SUBSCRIBE_SPOT = 2
     DISMISS = 3
 
-    def __init__(self, ev, dbus=True, device=None, display="gear"):
-        fanatec_led_server.Client.__init__(self, ev, dbus, device, display)
+    def __init__(self, ev, device=None, display="gear"):
+        fanatec_led_server.Client.__init__(self, ev, device, display)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setblocking(0)
         self.timeout_cnt = 0
@@ -132,7 +130,7 @@ class AcClient(fanatec_led_server.Client):
 if __name__ == "__main__":
     try:
         ev = threading.Event()
-        ac = AcClient(ev, device="0020", dbus=False)
+        ac = AcClient(ev, device="0020")
         ac.start()  # start the thread...
         ac.join()  # run until the thread terminates
 

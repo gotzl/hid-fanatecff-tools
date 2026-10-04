@@ -28,8 +28,8 @@ class WrcClient(fanatec_led_server.Client):
     UDP_IP = "127.0.0.1"
     UDP_PORT = 20778
 
-    def __init__(self, ev, dbus=True, device=None, display='gear'):
-        fanatec_led_server.Client.__init__(self, ev, dbus, device, display)
+    def __init__(self, ev, device=None, display='gear'):
+        fanatec_led_server.Client.__init__(self, ev, device, display)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((WrcClient.UDP_IP, WrcClient.UDP_PORT))
@@ -68,7 +68,7 @@ class WrcClient(fanatec_led_server.Client):
 if __name__ == "__main__":
     try:
         ev = threading.Event()
-        wrc = WrcClient(ev, device='0005', dbus=False)
+        wrc = WrcClient(ev, device='0005')
         wrc.start()
         wrc.join()
     except (KeyboardInterrupt, SystemExit):

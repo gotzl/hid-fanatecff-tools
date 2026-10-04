@@ -6,8 +6,8 @@ import pyacc
 
 
 class AccClient(fanatec_led_server.Client):
-    def __init__(self, ev, dbus=True, device=None, display='gear'): 
-        fanatec_led_server.Client.__init__(self, ev, dbus, device, display)
+    def __init__(self, ev, device=None, display='gear'): 
+        fanatec_led_server.Client.__init__(self, ev, device, display)
         self.physics = None
         self.mmap_check_cnt = 0
 
@@ -57,7 +57,7 @@ class AccClient(fanatec_led_server.Client):
 if __name__ == "__main__":
     try:
         ev = threading.Event()
-        acc = AccClient(ev, device='0005', dbus=False)
+        acc = AccClient(ev, device='0005')
         acc.start()
         acc.join()
 

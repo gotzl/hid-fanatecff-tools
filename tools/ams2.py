@@ -11,9 +11,6 @@ from enum import IntEnum
 from typing import Optional
 
 # pick up the wheel IDs
-import sys
-
-sys.path.append("../dbus")
 from fanatec_input import (
     CSL_ELITE_PS4_WHEELBASE_DEVICE_ID,
     CSL_DD_WHEELBASE_DEVICE_ID,
@@ -136,11 +133,10 @@ class AMS2Client(fanatec_led_server.Client):
     def __init__(
         self,
         ev,
-        dbus=True,
         device=None,
         display="gear",
     ):
-        fanatec_led_server.Client.__init__(self, ev, dbus, device, display)
+        fanatec_led_server.Client.__init__(self, ev, device, display)
         self.data_parser = AMS2DataParser()
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -194,7 +190,6 @@ if __name__ == "__main__":
         ams2 = AMS2Client(
             ev,
             device=CSL_DD_WHEELBASE_DEVICE_ID,
-            dbus=False,
         )
 
         ams2.start()

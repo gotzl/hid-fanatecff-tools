@@ -1,34 +1,11 @@
 #!/usr/bin/python3
-import sys
 import os
 import time
 import threading
 
-sys.path.append("../dbus")
 import fanatec_input
 
 LEDS = 9
-
-
-def set_leds(values):
-    global wheel
-    wheel.RPM = values
-
-
-def set_display(value):
-    global wheel
-    wheel.Display = value
-
-
-def set_pedals_rumble(abs, tc):
-    global pedals
-    pedals.rumble = "%i" % ((0xFF if tc else 0) << 16 | (0xFF if abs else 0) << 8)
-
-
-# clear leds and display
-def clear():
-    set_leds([False] * 9)
-    set_display(-1)
 
 
 wheels_dict = {
@@ -43,15 +20,13 @@ class Client(threading.Thread):
     def __init__(
         self,
         ev,
-        dbus=True,
         device=None,
         display="gear",
     ):
         threading.Thread.__init__(self)
-        if not dbus and device is None:
-            raise Exception("If dbus is not used, a device must be specified!")
+        if device is None:
+            raise Exception("A device must be specified!")
         self.ev = ev
-        self.dbus = dbus
         self.device = device
         self.display = display
         self.rate = 10
@@ -121,30 +96,30 @@ class Client(threading.Thread):
 
         self.prerun()
 
-        if not self.dbus:
-            while not self.ev.isSet():
-                try:
-                    fanatec_input.get_sysfs_base(self.device)
-                except Exception as e:
-                    print(e)
-                    self.postrun()
-                    print(self, 'finished.')
-                    time.sleep(1)
-                    return
+        display = None
+        pedals = None
+        while not self.ev.isSet():
+            try:
+                fanatec_input.get_sysfs_base(self.device)
+            except Exception as e:
+                print(e)
+                self.postrun()
+                print(self, 'finished.')
+                time.sleep(1)
+                return
 
-                print("Found sysfs for device", self.device)
+            print("Found sysfs for device", self.device)
 
-                try:
-                    display = self.wheel.get_sysfs("display", self.device)
-                    pedals = self.wheel.get_sysfs("rumble", self.device)
-                    if not os.path.isfile(display):
-                        display = None
-                    if not os.path.isfile(pedals):
-                        pedals = None
-                except:
-                    pass
-                finally:
-                    break
+            try:
+                display = self.wheel.get_sysfs("display", self.device)
+                pedals = self.wheel.get_sysfs("rumble", self.device)
+                if not os.path.isfile(display):
+                    display = None
+                if not os.path.isfile(pedals):
+                    pedals = None
+            except Exception:
+                pass
+            break
 
         if not self.ev.isSet():
             print(self, "connected")
@@ -164,34 +139,29 @@ class Client(threading.Thread):
             else:
                 leds = [i / LEDS < self.revLightsPercent for i in range(LEDS)]
 
-            if self.dbus:
-                set_leds(leds)
-                set_display(eval("self.%s" % self.display))
-                set_pedals_rumble(self.absInAction, self.tcInAction)
-            else:
-                rumble = "%i" % (
-                    (0xFF if self.tcInAction else 0) << 16
-                    | (0xFF if self.absInAction else 0) << 8
-                )
+            rumble = "%i" % (
+                (0xFF if self.tcInAction else 0) << 16
+                | (0xFF if self.absInAction else 0) << 8
+            )
 
-                if display is not None:
-                    display_val = str(self.speedKmh)
-                    if self.display == "gear":
-                        if self.wheel == fanatec_input.CSLEliteWheel:
-                            gear = {-1: "R", 0: "N"}
-                        elif self.wheel == fanatec_input.CSLP1V2Wheel:
-                            gear = {-1: "-1", 0: "000"}
-                        display_val = (
-                            gear[self.gear] if self.gear in gear else str(self.gear)
-                        )
+            if display is not None:
+                display_val = str(self.speedKmh)
+                if self.display == "gear":
+                    if self.wheel == fanatec_input.CSLEliteWheel:
+                        gear = {-1: "R", 0: "N"}
+                    elif self.wheel == fanatec_input.CSLP1V2Wheel:
+                        gear = {-1: "-1", 0: "000"}
+                    display_val = (
+                        gear[self.gear] if self.gear in gear else str(self.gear)
+                    )
 
-                        # print(display_val)
-                    open(display, "w").write(display_val)
+                    # print(display_val)
+                open(display, "w").write(display_val)
 
-                if pedals is not None:
-                    open(pedals, "w").write(str(rumble))
-                self.wheel.get_sysfs_rpm(self.device)
-                self.wheel.set_sysfs_rpm(self._revLightsPercent, self.device)
+            if pedals is not None:
+                open(pedals, "w").write(str(rumble))
+            self.wheel.get_sysfs_rpm(self.device)
+            self.wheel.set_sysfs_rpm(self._revLightsPercent, self.device)
 
 
         self.postrun()
@@ -216,11 +186,6 @@ if __name__ == "__main__":
         description="Advanced functions for fanatec wheels with ACC"
     )
     parser.add_argument(
-        "--dbus",
-        action="store_true",
-        help="Use dbus for communicating commands to the wheel.",
-    )
-    parser.add_argument(
         "--device",
         type=str,
         help="PID of the wheel (ClubSportv2 '0001', ClubSportv2.5 '0004', ...)",
@@ -234,11 +199,6 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    if args.dbus:
-        bus = SystemBus()
-        wheel = bus.get("org.fanatec.CSLElite", "/org/fanatec/CSLElite/Wheel")
-        pedals = bus.get("org.fanatec.CSLElite", "/org/fanatec/CSLElite/Pedals")
-
     try:
         ev = threading.Event()
 
@@ -248,7 +208,7 @@ if __name__ == "__main__":
 
         threads = []
         for typ in [F1_23Client, AcClient, AccClient, RF2Client, WrcClient, AMS2Client]:
-            threads.append(typ(ev, args.dbus, args.device, args.display))
+            threads.append(typ(ev, args.device, args.display))
 
         for thread in threads:
             thread.start()
@@ -273,5 +233,3 @@ if __name__ == "__main__":
         raise e
     finally:
         ev.set()
-        if args.dbus:
-            clear()

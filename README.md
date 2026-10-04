@@ -19,15 +19,7 @@ Use the PID of your fanatec wheel instead of `0005`. Possible values for display
 Press `CTRL-c` to stop the application.
 The command starts a thread per supported game and waits for connection to the respective telemetry data. Currently, only a small number of games is supported and **each game requires some additional setup first**, see below.
 
-## DBus service (!!not working yet!!)
-
-To give unpriviledged users access to the extended features of the wheel, a DBus service is installed which accesses the drivers sysfs.
-The following calls are currently implemented:
-
-* write display value
-* write LED staus
-* write load cell value
-* tuning menu
+All access to the wheel goes directly via the sysfs files exported by the driver.
 
 # Communication with games
 
